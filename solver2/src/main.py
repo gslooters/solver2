@@ -5,6 +5,7 @@ REST API for GREEDY Planning Engine
 
 Endpoints:
   GET  /                  - Health check
+  GET  /health            - Health check (Kubernetes/Railway compatible)
   POST /solve-greedy      - Execute GREEDY solver
   POST /solve-sequential  - Execute Sequential solver (TODO)
   POST /solve-cpsat       - Execute CP-SAT solver (TODO)
@@ -37,10 +38,8 @@ logger.info(f"[SOLVER2] Strategy: {SOLVER_STRATEGY}")
 logger.info(f"[SOLVER2] Supabase: {SUPABASE_URL}")
 
 
-@app.route('/', methods=['GET'])
-def health():
-    """Health check endpoint"""
-    logger.info("[API] GET / - Health check")
+def get_health_response():
+    """Generate health check response"""
     return jsonify({
         "status": "healthy",
         "version": "2.0.0-DRAAD194",
@@ -52,6 +51,20 @@ def health():
         },
         "routing": "PRIMARY: GREEDY, FALLBACK: Sequential"
     }), 200
+
+
+@app.route('/', methods=['GET'])
+def health():
+    """Health check endpoint (root)"""
+    logger.info("[API] GET / - Health check")
+    return get_health_response()
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint (Railway/Kubernetes compatible)"""
+    logger.info("[API] GET /health - Health check (Railway)")
+    return get_health_response()
 
 
 @app.route('/solve-greedy', methods=['POST'])
@@ -143,6 +156,7 @@ def not_found(error):
         "error": f"Endpoint not found: {request.path}",
         "available_endpoints": [
             "GET  /",
+            "GET  /health",
             "POST /solve-greedy",
             "POST /solve-sequential",
             "POST /solve-cpsat"
